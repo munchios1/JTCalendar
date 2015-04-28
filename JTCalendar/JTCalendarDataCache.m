@@ -39,7 +39,7 @@
 
 - (BOOL)haveEvent:(NSDate *)date
 {
-    if(!self.calendarManager.dataSource){
+  /*  if(!self.calendarManager.dataSource){
         return NO;
     }
     
@@ -58,7 +58,9 @@
         events[key] = [NSNumber numberWithBool:haveEvent];
     }
     
-    return haveEvent;
+    return haveEvent;*/
+    
+    return NO;
 }
 
 @end
