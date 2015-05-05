@@ -68,6 +68,7 @@ typedef NSString *(^JTCalendarMonthBlock)(NSDate *date, JTCalendar *jt_calendar)
 
 @property (assign, nonatomic) CGFloat dayCircleRatio;
 @property (assign, nonatomic) CGFloat dayDotRatio;
+@property (strong, nonatomic) NSTimeZone *timeZone;
 
 - (NSCalendar *)calendar;
 

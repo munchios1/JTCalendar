@@ -102,7 +102,7 @@
 #else
         calendar = [[NSCalendar alloc] initWithCalendarIdentifier:NSGregorianCalendar];
 #endif
-        calendar.timeZone = [NSTimeZone localTimeZone];
+        calendar.timeZone = (self.timeZone)?self.timeZone:[NSTimeZone localTimeZone];
     });
     
     return calendar;
