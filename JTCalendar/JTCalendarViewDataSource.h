@@ -12,7 +12,7 @@
 @protocol JTCalendarDataSource <NSObject>
 - (void)calendarDidDateSelected:(JTCalendar *)calendar date:(NSDate *)date;
 @optional
-
+- (void)calendarDidDateSelected:(JTCalendar *)calendar dateString:(NSString *)dateString;
 - (BOOL)calendarHaveEvent:(JTCalendar *)calendar date:(NSDate *)date;
 - (BOOL)calendar:(JTCalendar *)calendar canSelectDate:(NSDate *)date;
 

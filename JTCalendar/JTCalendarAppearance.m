@@ -42,6 +42,7 @@
     self.dayTextFont = [UIFont systemFontOfSize:[UIFont systemFontSize]];
 
     self.dayFormat = @"dd";
+    self.dateFormat = @"yyyy-MM-dd";
 
     // Day Background and Border
     self.dayBackgroundColor = [UIColor clearColor];

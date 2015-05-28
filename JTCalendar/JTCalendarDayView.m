@@ -150,6 +150,17 @@ static NSString *const kJTCalendarDaySelected = @"kJTCalendarDaySelected";
         }
     }
     
+    static NSDateFormatter *dateFormatter;
+    if(!dateFormatter){
+        dateFormatter = [NSDateFormatter new];
+        dateFormatter.timeZone = self.calendarManager.calendarAppearance.calendar.timeZone;
+        [dateFormatter setDateFormat:self.calendarManager.calendarAppearance.dateFormat];
+    }
+    
+    if ([self.calendarManager.dataSource respondsToSelector:@selector(calendarDidDateSelected:dateString:)]) {
+        [self.calendarManager.dataSource calendarDidDateSelected:self.calendarManager dateString:[dateFormatter stringFromDate:self.date]];
+    }
+    
     [self setSelected:YES animated:YES];
     [self.calendarManager setCurrentDateSelected:self.date];
     
@@ -163,7 +174,7 @@ static NSString *const kJTCalendarDaySelected = @"kJTCalendarDaySelected";
     
     NSInteger currentMonthIndex = [self monthIndexForDate:self.date];
     NSInteger calendarMonthIndex = [self monthIndexForDate:self.calendarManager.currentDate];
-        
+    
     currentMonthIndex = currentMonthIndex % 12;
     
     if(currentMonthIndex == (calendarMonthIndex + 1) % 12){
