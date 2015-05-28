@@ -26,6 +26,7 @@
     }
     
     self->_currentDate = [NSDate date];
+    self->_todayDate = [NSDate date];
     self->_calendarAppearance = [JTCalendarAppearance new];
     self->_dataCache = [JTCalendarDataCache new];
     self.dataCache.calendarManager = self;

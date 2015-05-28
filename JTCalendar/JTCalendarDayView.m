@@ -270,7 +270,7 @@ static NSString *const kJTCalendarDaySelected = @"kJTCalendarDaySelected";
 }
 
 - (void)reloadData
-{
+{   cacheIsToday = -1;
     dotView.hidden = ![self.calendarManager.dataCache haveEvent:self.date];
     
     BOOL selected = [self isSameDate:[self.calendarManager currentDateSelected]];
@@ -286,7 +286,7 @@ static NSString *const kJTCalendarDaySelected = @"kJTCalendarDaySelected";
         return YES;
     }
     else{
-        if([self isSameDate:[NSDate date]]){
+        if([self isSameDate:self.calendarManager.todayDate]){
             cacheIsToday = 1;
             return YES;
         }
@@ -296,6 +296,7 @@ static NSString *const kJTCalendarDaySelected = @"kJTCalendarDaySelected";
         }
     }
 }
+
 
 - (BOOL)isSameDate:(NSDate *)date
 {
