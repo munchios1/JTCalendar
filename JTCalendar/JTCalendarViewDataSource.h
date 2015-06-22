@@ -19,4 +19,6 @@
 - (void)calendarDidLoadPreviousPage;
 - (void)calendarDidLoadNextPage;
 
+- (NSDate *)calendarStartDateLimit;
+- (NSDate *)calendarEndDateLimit;
 @end

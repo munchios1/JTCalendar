@@ -13,6 +13,9 @@
     BOOL cacheLastWeekMode;
     NSUInteger cacheFirstWeekDay;
 }
+@property (nonatomic, assign)CGFloat lastContentOffset;
+@property (nonatomic, assign)BOOL preventLoadPrevious;
+@property (nonatomic, assign)BOOL preventLoadNext;
 
 @end
 
@@ -115,6 +118,20 @@
 - (void)scrollViewDidScroll:(UIScrollView *)sender
 {
     if(self.calendarAppearance.isWeekMode){
+        
+        float delta = self.lastContentOffset - sender.contentOffset.x;
+        
+        if (delta > 0.0){
+            if (_preventLoadPrevious) {
+                [sender setContentOffset:CGPointMake(self.lastContentOffset, sender.contentOffset.y) animated:NO];
+            }
+        }
+        else if (delta < 0.0){
+            if (_preventLoadNext) {
+                [sender setContentOffset:CGPointMake(self.lastContentOffset, sender.contentOffset.y) animated:NO];
+            }
+        }
+        
         return;
     }
     
@@ -134,6 +151,8 @@
 
 - (void)scrollViewWillBeginDragging:(UIScrollView *)scrollView
 {
+    self.lastContentOffset = scrollView.contentOffset.x;
+    
     if(scrollView == self.contentView){
         self.menuMonthsView.scrollEnabled = NO;
     }
@@ -186,6 +205,13 @@
     }
         
     NSDate *currentDate = [calendar dateByAddingComponents:dayComponent toDate:self.currentDate options:0];
+
+    NSDateComponents *weekEndDateComponent = [dayComponent copy];
+    weekEndDateComponent.day += 6;
+    
+    NSDate *weekEndDate = [calendar dateByAddingComponents:weekEndDateComponent toDate:self.currentDate options:0];
+
+    [self scrollRangeWithStart:currentDate toEnd:weekEndDate];
     
     [self setCurrentDate:currentDate];
     
@@ -204,6 +230,46 @@
             [self.dataSource calendarDidLoadNextPage];
         }
     }
+}
+
+- (void)scrollRangeWithStart:(NSDate *)currentDate toEnd:(NSDate *)weekEndDate {
+    
+    NSLog(@"weekStart Date %@",currentDate);
+    NSLog(@"weekEnd Date %@",weekEndDate);
+    
+    if ([self.dataSource respondsToSelector:@selector(calendarEndDateLimit)]) {
+        NSDate *limitDate = [self.dataSource calendarEndDateLimit];
+        _preventLoadNext = [self compareWeekEndDate:weekEndDate withRangeLimitDate:limitDate];
+    }
+    
+    if ([self.dataSource respondsToSelector:@selector(calendarStartDateLimit)]) {
+        NSDate *limitDate = [self.dataSource calendarStartDateLimit];
+        _preventLoadPrevious = [self compareWeekEndDate:currentDate withRangeLimitDate:limitDate];
+    }
+}
+
+- (BOOL)compareWeekEndDate:(NSDate *)weekEndDate withRangeLimitDate:(NSDate *)rangeLimitDate {
+    
+    NSCalendar *calendar = [NSCalendar currentCalendar];
+    NSInteger comps = (NSDayCalendarUnit | NSMonthCalendarUnit | NSYearCalendarUnit);
+    
+    NSDateComponents *date1Components = [calendar components:comps
+                                                    fromDate: weekEndDate];
+    NSDateComponents *date2Components = [calendar components:comps
+                                                    fromDate: rangeLimitDate];
+    
+    weekEndDate = [calendar dateFromComponents:date1Components];
+    rangeLimitDate = [calendar dateFromComponents:date2Components];
+    
+    NSComparisonResult result = [weekEndDate compare:rangeLimitDate];
+    if (result == NSOrderedAscending) {
+    } else if (result == NSOrderedDescending) {
+    } else {
+        //Same date
+        return true;
+    }
+
+    return false;
 }
 
 - (void)repositionViews
