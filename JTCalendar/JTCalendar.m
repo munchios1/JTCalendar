@@ -16,6 +16,7 @@
 @property (nonatomic, assign)CGFloat lastContentOffset;
 @property (nonatomic, assign)BOOL preventLoadPrevious;
 @property (nonatomic, assign)BOOL preventLoadNext;
+@property (nonatomic, assign)BOOL didLoaded;
 
 @end
 
@@ -132,6 +133,10 @@
             }
         }
         
+        if (!_didLoaded) {
+            [self updatePage];
+        }
+        
         return;
     }
     
@@ -169,6 +174,7 @@
 
 - (void)scrollViewDidEndDecelerating:(UIScrollView *)scrollView
 {
+    _didLoaded = true;
     [self updatePage];
 }
 
@@ -183,6 +189,9 @@
             self.menuMonthsView.scrollEnabled = YES;
         }
         self.contentView.scrollEnabled = YES;
+        
+        [self setUpScrollRangeForCurrentPage:currentPage];
+        
         return;
     }
     
@@ -232,10 +241,37 @@
     }
 }
 
-- (void)scrollRangeWithStart:(NSDate *)currentDate toEnd:(NSDate *)weekEndDate {
+- (void)setUpScrollRangeForCurrentPage:(int)currentPage {
     
-    NSLog(@"weekStart Date %@",currentDate);
-    NSLog(@"weekEnd Date %@",weekEndDate);
+    NSCalendar *calendar = self.calendarAppearance.calendar;
+    NSDateComponents *dayComponent = [NSDateComponents new];
+    
+    dayComponent.month = 0;
+    dayComponent.day = 0;
+    
+    if(!self.calendarAppearance.isWeekMode){
+        dayComponent.month = currentPage - (NUMBER_PAGES_LOADED / 2);
+    }
+    else{
+        dayComponent.day = 7 * (currentPage - (NUMBER_PAGES_LOADED / 2));
+    }
+    
+    if(self.calendarAppearance.readFromRightToLeft){
+        dayComponent.month *= -1;
+        dayComponent.day *= -1;
+    }
+    
+    NSDate *currentDate = [calendar dateByAddingComponents:dayComponent toDate:self.currentDate options:0];
+    
+    NSDateComponents *weekEndDateComponent = [dayComponent copy];
+    weekEndDateComponent.day += 6;
+    
+    NSDate *weekEndDate = [calendar dateByAddingComponents:weekEndDateComponent toDate:self.currentDate options:0];
+    
+    [self scrollRangeWithStart:currentDate toEnd:weekEndDate];
+}
+
+- (void)scrollRangeWithStart:(NSDate *)currentDate toEnd:(NSDate *)weekEndDate {
     
     if ([self.dataSource respondsToSelector:@selector(calendarEndDateLimit)]) {
         NSDate *limitDate = [self.dataSource calendarEndDateLimit];
