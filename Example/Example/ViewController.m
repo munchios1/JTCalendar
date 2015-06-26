@@ -141,8 +141,8 @@
 
 #pragma mark - Fake data
 
-- (NSDateFormatter *)dateFormatter
-{
+- (NSDateFormatter *)dateFormatter {
+    
     static NSDateFormatter *dateFormatter;
     if(!dateFormatter){
         dateFormatter = [NSDateFormatter new];

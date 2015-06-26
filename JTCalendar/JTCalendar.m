@@ -16,7 +16,7 @@
 @property (nonatomic, assign)CGFloat lastContentOffset;
 @property (nonatomic, assign)BOOL preventLoadPrevious;
 @property (nonatomic, assign)BOOL preventLoadNext;
-@property (nonatomic, assign)BOOL didLoaded;
+@property (nonatomic, assign)BOOL isLoaded;
 
 @end
 
@@ -34,6 +34,8 @@
     self->_calendarAppearance = [JTCalendarAppearance new];
     self->_dataCache = [JTCalendarDataCache new];
     self.dataCache.calendarManager = self;
+    
+    self.contentView.bounces = false;
     
     return self;
 }
@@ -133,8 +135,9 @@
             }
         }
         
-        if (!_didLoaded) {
+        if (!_isLoaded) {
             [self updatePage];
+            _isLoaded = true;
         }
         
         return;
@@ -167,14 +170,11 @@
 }
 
 // Use for scroll with scrollRectToVisible or setContentOffset
-- (void)scrollViewDidEndScrollingAnimation:(UIScrollView *)scrollView
-{
+- (void)scrollViewDidEndScrollingAnimation:(UIScrollView *)scrollView {
     [self updatePage];
 }
 
-- (void)scrollViewDidEndDecelerating:(UIScrollView *)scrollView
-{
-    _didLoaded = true;
+- (void)scrollViewDidEndDecelerating:(UIScrollView *)scrollView {
     [self updatePage];
 }
 
@@ -212,21 +212,17 @@
         dayComponent.month *= -1;
         dayComponent.day *= -1;
     }
+    
+    [self setUpScrollRangeForCurrentPage:currentPage];
         
     NSDate *currentDate = [calendar dateByAddingComponents:dayComponent toDate:self.currentDate options:0];
-
-    NSDateComponents *weekEndDateComponent = [dayComponent copy];
-    weekEndDateComponent.day += 6;
-    
-    NSDate *weekEndDate = [calendar dateByAddingComponents:weekEndDateComponent toDate:self.currentDate options:0];
-
-    [self scrollRangeWithStart:currentDate toEnd:weekEndDate];
     
     [self setCurrentDate:currentDate];
     
     if(!self.calendarAppearance.isWeekMode){
         self.menuMonthsView.scrollEnabled = YES;
     }
+    
     self.contentView.scrollEnabled = YES;
     
     if(currentPage < (NUMBER_PAGES_LOADED / 2)){
@@ -239,6 +235,15 @@
             [self.dataSource calendarDidLoadNextPage];
         }
     }
+}
+
+- (void)scrollRangeForSender:(UIScrollView *)scrollView {
+    
+    CGFloat pageWidth = CGRectGetWidth(self.contentView.frame);
+    CGFloat fractionalPage = self.contentView.contentOffset.x / pageWidth;
+    int currentPage = roundf(fractionalPage);
+    
+    [self setUpScrollRangeForCurrentPage:currentPage];
 }
 
 - (void)setUpScrollRangeForCurrentPage:(int)currentPage {
@@ -261,50 +266,70 @@
         dayComponent.day *= -1;
     }
     
-    NSDate *currentDate = [calendar dateByAddingComponents:dayComponent toDate:self.currentDate options:0];
+    NSDate *weekStartDate = [calendar dateByAddingComponents:dayComponent toDate:self.currentDate options:0];
     
     NSDateComponents *weekEndDateComponent = [dayComponent copy];
     weekEndDateComponent.day += 6;
     
     NSDate *weekEndDate = [calendar dateByAddingComponents:weekEndDateComponent toDate:self.currentDate options:0];
     
-    [self scrollRangeWithStart:currentDate toEnd:weekEndDate];
+    [self scrollRangeWithStart:weekStartDate toEnd:weekEndDate];
 }
 
-- (void)scrollRangeWithStart:(NSDate *)currentDate toEnd:(NSDate *)weekEndDate {
+- (void)scrollRangeWithStart:(NSDate *)weekStartDate toEnd:(NSDate *)weekEndDate {
     
     if ([self.dataSource respondsToSelector:@selector(calendarEndDateLimit)]) {
         NSDate *limitDate = [self.dataSource calendarEndDateLimit];
-        _preventLoadNext = [self compareWeekEndDate:weekEndDate withRangeLimitDate:limitDate];
+        _preventLoadNext = [self rangeEnd:limitDate isLessThanEquals:weekEndDate];
     }
     
     if ([self.dataSource respondsToSelector:@selector(calendarStartDateLimit)]) {
         NSDate *limitDate = [self.dataSource calendarStartDateLimit];
-        _preventLoadPrevious = [self compareWeekEndDate:currentDate withRangeLimitDate:limitDate];
+        _preventLoadPrevious = [self rangeStart:limitDate isGreaterThanEquals:weekStartDate];
     }
 }
 
-- (BOOL)compareWeekEndDate:(NSDate *)weekEndDate withRangeLimitDate:(NSDate *)rangeLimitDate {
+- (BOOL )rangeStart:(NSDate *)rangeStart isGreaterThanEquals:(NSDate *)weekStart {
     
     NSCalendar *calendar = [NSCalendar currentCalendar];
     NSInteger comps = (NSDayCalendarUnit | NSMonthCalendarUnit | NSYearCalendarUnit);
     
-    NSDateComponents *date1Components = [calendar components:comps
-                                                    fromDate: weekEndDate];
-    NSDateComponents *date2Components = [calendar components:comps
-                                                    fromDate: rangeLimitDate];
+    NSDateComponents *weekStartComponent = [calendar components:comps
+                                                    fromDate: weekStart];
+    NSDateComponents *rangeStartComponent = [calendar components:comps
+                                                    fromDate: rangeStart];
     
-    weekEndDate = [calendar dateFromComponents:date1Components];
-    rangeLimitDate = [calendar dateFromComponents:date2Components];
+    weekStart = [calendar dateFromComponents:weekStartComponent];
+    rangeStart = [calendar dateFromComponents:rangeStartComponent];
     
-    NSComparisonResult result = [weekEndDate compare:rangeLimitDate];
-    if (result == NSOrderedAscending) {
-    } else if (result == NSOrderedDescending) {
-    } else {
-        //Same date
+    NSComparisonResult result = [weekStart compare:rangeStart];
+    
+    if (result == NSOrderedAscending || result == NSOrderedSame) {
         return true;
     }
+    
+    return false;
+}
 
+- (BOOL )rangeEnd:(NSDate *)rangeEnd isLessThanEquals:(NSDate *)weekEnd {
+ 
+    NSCalendar *calendar = [NSCalendar currentCalendar];
+    NSInteger comps = (NSDayCalendarUnit | NSMonthCalendarUnit | NSYearCalendarUnit);
+    
+    NSDateComponents *date1Components = [calendar components:comps
+                                                    fromDate: weekEnd];
+    NSDateComponents *date2Components = [calendar components:comps
+                                                    fromDate: rangeEnd];
+    
+    weekEnd = [calendar dateFromComponents:date1Components];
+    rangeEnd = [calendar dateFromComponents:date2Components];
+    
+    NSComparisonResult result = [weekEnd compare:rangeEnd];
+    
+    if (result == NSOrderedDescending || result == NSOrderedSame) {
+        return true;
+    }
+    
     return false;
 }
 
