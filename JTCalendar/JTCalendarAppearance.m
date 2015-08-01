@@ -60,6 +60,8 @@
     self.dayCircleColorSelected = [UIColor redColor];
     self.dayTextColorSelected = [UIColor whiteColor];
     self.dayDotColorSelected = [UIColor whiteColor];
+    self.dayCircleColorDisabled = [UIColor colorWithRed:0x33/256. green:0xB3/256. blue:0xEC/256. alpha:.5];
+    self.dayTextColorDisabled = [UIColor whiteColor];
     
     self.dayCircleColorSelectedOtherMonth = self.dayCircleColorSelected;
     self.dayTextColorSelectedOtherMonth = self.dayTextColorSelected;

@@ -42,6 +42,7 @@ typedef NSString *(^JTCalendarMonthBlock)(NSDate *date, JTCalendar *jt_calendar)
 @property (nonatomic) UIColor *dayCircleColorSelectedOtherMonth;
 @property (nonatomic) UIColor *dayCircleColorToday;
 @property (nonatomic) UIColor *dayCircleColorTodayOtherMonth;
+@property (nonatomic) UIColor *dayCircleColorDisabled;
 
 @property (nonatomic) UIColor *dayDotColor;
 @property (nonatomic) UIColor *dayDotColorSelected;
@@ -56,6 +57,7 @@ typedef NSString *(^JTCalendarMonthBlock)(NSDate *date, JTCalendar *jt_calendar)
 @property (nonatomic) UIColor *dayTextColorSelectedOtherMonth;
 @property (nonatomic) UIColor *dayTextColorToday;
 @property (nonatomic) UIColor *dayTextColorTodayOtherMonth;
+@property (nonatomic) UIColor *dayTextColorDisabled;
 
 @property (nonatomic) UIFont *dayTextFont;
 

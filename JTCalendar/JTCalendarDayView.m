@@ -249,6 +249,12 @@ static NSString *const kJTCalendarDaySelected = @"kJTCalendarDaySelected";
         }
         
         opacity = 0.;
+        
+        if ([self isDisabled]) {
+            circleView.color = [self.calendarManager.calendarAppearance dayCircleColorDisabled];
+            textLabel.textColor = [self.calendarManager.calendarAppearance dayTextColorDisabled];
+            opacity = 1.0;
+        }
     }
     
     if(animated){
@@ -297,6 +303,22 @@ static NSString *const kJTCalendarDaySelected = @"kJTCalendarDaySelected";
     }
 }
 
+- (BOOL)isDisabled
+{
+    if([self isGreaterThan:self.calendarManager.dayAfterDisableDate]){
+        return YES;
+    }
+    return NO;
+}
+
+- (BOOL)isGreaterThan:(NSDate *)date
+{
+    if([self.date timeIntervalSinceDate:date] > 0) {
+        return true;
+    }else{
+        return false;
+    }
+}
 
 - (BOOL)isSameDate:(NSDate *)date
 {
